@@ -1,0 +1,82 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jul 14 12:02:08 2017
+
+@author: adutta
+"""
+
+import pandas as pd
+import numpy as np
+from matplotlib import pyplot as plt
+from scipy import stats
+import os
+
+def plot_compare(lst_filepath,title,legendvalues,unrml):
+    def read_centreline_data(lst_filepath):
+        nd = []
+        nuz = []
+        for name in lst_filepath:
+    
+            filename = os.getcwd()+'/'+name+'/line_U.xy'
+            df = pd.read_csv(filename,sep = ' \t', header = None )
+            df.columns = ['length', 'Ux', 'Uy', 'Uz']
+            nax = np.asarray(df['length'])
+            nd.append(nax/0.01)
+            nuz.append(np.asarray(df['Ux']))
+        return nd, nuz
+    
+    def plot_centreline_data(nd,nuz,title,legendvalues):
+        ax = plt.subplot(1,1,1)
+        for i in range(0,len(nuz)):
+            plt.plot(nd[i],nuz[i]/unrml[i], label = str(legendvalues[i]))
+    
+    
+        plt.xlabel('x/H - Normalized Axial Distance')
+        plt.ylabel('$(\\frac{U_{max}}{U_{c}})^{2}$ Normalized Centreline velocity', fontsize=12)
+        plt.title(title)
+        ax.grid(True, which='both')
+        plt.minorticks_on()
+        plt.grid('on')
+        plt.text(10,8,'Lowest Simulation Decay Rate ~ 0.129', color = 'blue')
+        plt.text(10,10,'Experimental Decay Rate ~ 0.107', color = 'black')
+        #plt.xscale('log')
+        #plt.xlim(50,100)
+        #plt.ylim(0,0.2)
+        plt.legend()
+        
+        plt.show()
+    
+    def calc_cent_dec_rate(nd,nuz,slc):
+        nd_s = []
+        nuz_s = []
+        slope = []
+        intercept = []
+        r_value = []
+        p_value = []
+        std_err = []
+        
+        for i in range(0,len(nd)):
+            nd_s.append(nd[i][slc:])
+        for i in range(0,len(nuz)):                                                                                                                                                             
+            nuz_s.append(nuz[i][slc:])                                                                                                                              
+        for i in range(0,len(nuz_s)):
+            slope_t, intercept_t, r_value_t, p_value_t, std_err_t = stats.linregress(nd_s[i],np.power(unrml[i]/nuz_s[i],2))
+            slope.append(slope_t)
+            intercept.append(intercept_t)
+            r_value.append(r_value_t)
+            p_value.append(p_value_t)
+            std_err.append(std_err_t)
+        return slope, intercept, r_value, p_value, std_err, nd_s, nuz_s
+    nd , nuz = read_centreline_data(lst_filepath)
+    plot_centreline_data(nd,nuz,title,legendvalues)
+    slope, intercept, r_value, p_value, std_err, nd_s , nuz_s = calc_cent_dec_rate(nd,nuz,800)
+    return nd, nuz, slope, intercept, r_value, p_value, std_err, nd_s,nuz_s
+
+lst_filepath = [ 'axs_laminar_re66']
+legendvalues = ['Re=66']
+unrml = [0.001]
+title = 'Latest Decay Rates'
+
+nd, nuz, slope, intercept, r_value, p_value, std_err, nd_s, nuz_s = plot_compare(lst_filepath,title,legendvalues,unrml)
+
