@@ -4,6 +4,7 @@ Contains functions for loading, saving and general maintenance of data
 
 import h5py
 import numpy as np
+import os
 
 def save_to_hdf5(h5_handle, py_dict):
     '''
@@ -50,7 +51,7 @@ def convert_2d_2c_vc7(vc7_folder_path, hdf5_file_path):
     import glob
 
     # Initialization
-    all_vc7_path = glob.glob(vc7_folder_path+'*.vc7')
+    all_vc7_path = glob.glob(os.path.join(vc7_folder_path,'*.vc7'))
 
     # Initialize the data storage dictionary based on information of the first frames
     first_vbuff, first_vattr = ReadIM.get_Buffer_andAttributeList(all_vc7_path[0])
